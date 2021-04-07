@@ -196,7 +196,7 @@ class Splatron(TwoPlayersGame):
         pass
 
 
-1
+
 # General setup
 pygame.init()
 music_file = 'ost.ogg'
