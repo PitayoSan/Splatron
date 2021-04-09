@@ -10,6 +10,9 @@ NONE = 0
 PLAYER = 1
 AI = 2
 
+# Entities parameters
+PLAYER_INK = 200
+
 # Size
 BOARD_SIZE_H = 8
 BOARD_SIZE_V = 8
@@ -71,7 +74,7 @@ class Player:
     ALL_MOVES = [[0, -1], [0, 1], [-1, 0], [1, 0]]
 
     def __init__(self, board, location, entity):  # , direction):
-        self.ink = 200
+        self.ink = PLAYER_INK
         self.board = board
         self.location = location  # Current Tile
         self.entity = entity
@@ -309,10 +312,10 @@ def update():
 
     print(game.scoreboard())
 
-    rect = pygame.Rect((1, 520, 520, 30))
-    large_font = pygame.font.Font('Paintball.ttf', 20)
+    rect = pygame.Rect((5, 520, 520, 30))
+    large_font = pygame.font.Font('Paintball.ttf', 26)
     text = large_font.render(
-        f'HUMAN: Score {str(game.player1.get_score())} Ink {str(game.player1.ink)}%  AI: Score {str(game.player2.get_score())} Ink {str(game.player2.ink)}%',
+        f'HUMAN: {str(game.player1.get_score())}p Ink {str(int((game.player1.ink / PLAYER_INK) * 100))}% | AI: {str(game.player2.get_score())}p Ink {str(int((game.player2.ink / PLAYER_INK) * 100))}%',
         1,
         (255, 255, 255)
     )
