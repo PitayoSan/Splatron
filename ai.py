@@ -11,8 +11,8 @@ PLAYER = 1
 AI = 2
 
 # Size
-BOARD_SIZE_H = 16
-BOARD_SIZE_V = 9
+BOARD_SIZE_H = 8
+BOARD_SIZE_V = 8
 TILE_SIZE = 64
 
 # Images
@@ -23,8 +23,12 @@ PLAYER_FRONT = pygame.image.load("player-front.png")
 AI_FRONT = pygame.image.load("ai-front.png")
 
 # FPS
-FPS = 30
+FPS = 15
 
+# Players positions
+player_last = None
+ai_last = None
+score_last = 0
 
 class Tile:
     def __init__(self, x, y, back, front):
@@ -82,14 +86,14 @@ class Player:
         self.location.front = NONE
         new_tile.front = self.entity
 
-        self.location.draw(screen)
-        new_tile.draw(screen)
-
         self.location = new_tile
         self.ink -= 1
 
     def possible_moves(self):
-        return [d for d in Player.ALL_MOVES if self.can_move(d)]
+        moves = [d for d in Player.ALL_MOVES if self.can_move(d)]
+        if not moves:
+            return [[0, 0]]
+        return moves
 
     def get_score(self):
         pass
@@ -138,8 +142,19 @@ class Ai(Player):
     def get_direction(self):
         # Use NegaMax to return next move accoding to game's possible_moves
         return game.get_move()
-        #return random.choice(self.possible_moves())  # temporary
+
+    def can_move(self, direction):
+        # Take current direction and see if candidate Tile is valid.
+        illegal_move = [self.prev_direction[0] * -1, self.prev_direction[1] * -1]
+        if illegal_move == direction:
+            return False
+        return super().can_move(direction)
     
+    # def possible_moves(self):
+    #     ai_moves = [d for d in Player.ALL_MOVES if self.can_move(d)]
+    #     ai_moves.append([0, 0])
+    #     return ai_moves
+
     def get_score(self):
         score = 0
         for row in self.board.tiles:
@@ -229,7 +244,8 @@ class Splatron(TwoPlayersGame):
         self.current_player().move(direction)
 
     def scoring(self):
-        return self.player2.get_score()
+        score = self.player2.get_score() - self.player1.get_score()
+        return score
     
     def scoreboard(self):
         return f'HUMAN: {str(self.player1.get_score())} ({str(self.player1.ink)})  AI: {str(self.player2.get_score())} ({str(self.player2.ink)})'
@@ -246,15 +262,39 @@ screen = pygame.display.set_mode((BOARD_SIZE_H * TILE_SIZE, BOARD_SIZE_V * TILE_
 frames = pygame.time.Clock()
 
 
-game = Splatron([Human_Player(), AI_Player(Negamax(5))], BOARD_SIZE_H, BOARD_SIZE_V)
+game = Splatron([Human_Player(), AI_Player(Negamax(4))], BOARD_SIZE_H, BOARD_SIZE_V)
 
 # Make initial directions for each player (turns are switched automatically):
-game.play_move([1, 0]) # Human player moves right
-game.play_move([-1, 0]) # Ai player moves left
+game.player1.location.draw(screen)
+game.player2.location.draw(screen)
+
+game.play_move([1, 0])  # Human player moves right
+game.play_move([-1, 0])  # Ai player moves left
+
+game.board.spawn_alpha().draw(screen)
+game.board.spawn_beta().draw(screen)
+
+game.player1.location.draw(screen)
+game.player2.location.draw(screen)
 
 def update():
+    global score_last
+    score_last = game.player2.get_score() - game.player1.get_score()
+
+    global player_last
+    player_last = game.current_player().location
     game.play_move(game.current_player().get_direction())
+    player_last.draw(screen)
+    game.player1.location.draw(screen)
+
+    global ai_last
+    ai_last = game.current_player().location
+    game.play_move(game.current_player().get_direction())
+    ai_last.draw(screen)
+    game.player2.location.draw(screen)
+
     print(game.scoreboard())
+
 
 while not game.is_over():
     pygame.display.update()
