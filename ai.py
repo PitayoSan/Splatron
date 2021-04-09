@@ -21,9 +21,16 @@ PLAYER_BACK = pygame.image.load("player-back.png")
 AI_BACK = pygame.image.load("ai-back.png")
 PLAYER_FRONT = pygame.image.load("player-front.png")
 AI_FRONT = pygame.image.load("ai-front.png")
+PROGRAM_ICON = pygame.image.load('esplatun.ico')
+
+# Colors
+BLACK = (0, 0, 0)
 
 # FPS
 FPS = 15
+
+# Music files
+MATCH_TRACK = 'ost.ogg'
 
 # Players positions
 player_last = None
@@ -253,15 +260,21 @@ class Splatron(TwoPlayersGame):
 
 # General setup
 pygame.init()
-music_file = 'ost.ogg'
+
+# Music Mixer
 pygame.mixer.init()
-pygame.mixer.music.load(music_file)
+pygame.mixer.music.load(MATCH_TRACK)
 pygame.mixer.music.play(-1)
-pygame.display.set_caption("Esplatún 4")
-screen = pygame.display.set_mode((BOARD_SIZE_H * TILE_SIZE, BOARD_SIZE_V * TILE_SIZE))
+
+# Window elements
+pygame.display.set_caption("Splatron")
+pygame.display.set_icon(PROGRAM_ICON)
+
+# Screen
+screen = pygame.display.set_mode((BOARD_SIZE_H * TILE_SIZE, BOARD_SIZE_V * TILE_SIZE + 35))
 frames = pygame.time.Clock()
 
-
+# Game
 game = Splatron([Human_Player(), AI_Player(Negamax(4))], BOARD_SIZE_H, BOARD_SIZE_V)
 
 # Make initial directions for each player (turns are switched automatically):
@@ -276,6 +289,7 @@ game.board.spawn_beta().draw(screen)
 
 game.player1.location.draw(screen)
 game.player2.location.draw(screen)
+
 
 def update():
     global score_last
@@ -294,6 +308,16 @@ def update():
     game.player2.location.draw(screen)
 
     print(game.scoreboard())
+
+    rect = pygame.Rect((1, 520, 520, 30))
+    large_font = pygame.font.Font('Paintball.ttf', 20)
+    text = large_font.render(
+        f'HUMAN: Score {str(game.player1.get_score())} Ink {str(game.player1.ink)}%  AI: Score {str(game.player2.get_score())} Ink {str(game.player2.ink)}%',
+        1,
+        (255, 255, 255)
+    )
+    pygame.draw.rect(screen, BLACK, rect)
+    screen.blit(text, rect)
 
 
 while not game.is_over():
