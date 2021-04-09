@@ -310,7 +310,7 @@ def update():
     ai_last.draw(screen)
     game.player2.location.draw(screen)
 
-    print(game.scoreboard())
+    # print(game.scoreboard())
 
     rect = pygame.Rect((5, 520, 520, 30))
     large_font = pygame.font.Font('Paintball.ttf', 26)
@@ -331,3 +331,8 @@ while not game.is_over():
             sys.exit()
     update()
     frames.tick(FPS)
+
+if game.player1.get_score() > game.player2.get_score():
+    print("YOU WON!!!")
+else:
+    print("You suck! Better luck next time.")
