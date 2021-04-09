@@ -23,7 +23,7 @@ PLAYER_FRONT = pygame.image.load("player-front.png")
 AI_FRONT = pygame.image.load("ai-front.png")
 
 # FPS
-FPS = 10
+FPS = 30
 
 
 class Tile:
@@ -60,7 +60,7 @@ class Player:
     ALL_MOVES = [[0, -1], [0, 1], [-1, 0], [1, 0]]
 
     def __init__(self, board, location, entity):  # , direction):
-        self.ink = 70
+        self.ink = 200
         self.board = board
         self.location = location  # Current Tile
         self.entity = entity
@@ -91,6 +91,8 @@ class Player:
     def possible_moves(self):
         return [d for d in Player.ALL_MOVES if self.can_move(d)]
 
+    def get_score(self):
+        pass
 
 class Human(Player):
 
@@ -118,6 +120,14 @@ class Human(Player):
         else:
             # Do nothing?
             return [0, 0]
+        
+    def get_score(self):
+        score = 0
+        for row in self.board.tiles:
+            for tile in row:
+                if tile.back == 1: score += 1
+        
+        return score
 
 
 class Ai(Player):
@@ -127,8 +137,16 @@ class Ai(Player):
 
     def get_direction(self):
         # Use NegaMax to return next move accoding to game's possible_moves
-        # return game.get_move()
-        return random.choice(self.possible_moves())  # temporary
+        return game.get_move()
+        #return random.choice(self.possible_moves())  # temporary
+    
+    def get_score(self):
+        score = 0
+        for row in self.board.tiles:
+            for tile in row:
+                if tile.back == 2: score += 1
+        
+        return score
 
 
 class Board:
@@ -166,6 +184,25 @@ class Board:
             return False
 
         return self.tiles[new_y][new_x].front == NONE
+    
+    '''def board_score(self): # score for ai
+        score = 0
+        for row in self.tiles:
+            for tile in row:
+                if tile.back == 1: score -= 1
+                elif tile.back == 2: score += 1'''
+
+    def get_ai_score(self):
+        return self.player_ai.get_score()
+
+    def board_state(self):
+        print('#######################')
+        for row in self.tiles:
+            for tile in row:
+                print(f'{tile.back}\t', end='')
+            print()
+        print('#######################')
+    
 
 
 class Splatron(TwoPlayersGame):
@@ -192,9 +229,10 @@ class Splatron(TwoPlayersGame):
         self.current_player().move(direction)
 
     def scoring(self):
-        # measure ink points for current player
-        pass
-
+        return self.player2.get_score()
+    
+    def scoreboard(self):
+        return f'HUMAN: {str(self.player1.get_score())} ({str(self.player1.ink)})  AI: {str(self.player2.get_score())} ({str(self.player2.ink)})'
 
 
 # General setup
@@ -207,8 +245,8 @@ pygame.display.set_caption("Esplatún 4")
 screen = pygame.display.set_mode((BOARD_SIZE_H * TILE_SIZE, BOARD_SIZE_V * TILE_SIZE))
 frames = pygame.time.Clock()
 
-'''
-game = Splatron([Human_Player(), AI_Player(Negamax(5))], 10, 10)
+
+game = Splatron([Human_Player(), AI_Player(Negamax(5))], BOARD_SIZE_H, BOARD_SIZE_V)
 
 # Make initial directions for each player (turns are switched automatically):
 game.play_move([1, 0]) # Human player moves right
@@ -216,6 +254,7 @@ game.play_move([-1, 0]) # Ai player moves left
 
 def update():
     game.play_move(game.current_player().get_direction())
+    print(game.scoreboard())
 
 while not game.is_over():
     pygame.display.update()
@@ -223,35 +262,5 @@ while not game.is_over():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-'''
-
-# Board setup
-board = Board(BOARD_SIZE_H, BOARD_SIZE_V)
-
-# Player setup
-human = board.player_human
-
-# AI setup
-ai = board.player_ai
-
-human.move([1, 0])
-ai.move([-1, 0])
-
-
-# Update funcition
-def update():
-    human.move(human.get_direction())
-    ai.move(ai.get_direction())
-
-
-# Game loop
-while True:
-    pygame.display.update()
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-
     update()
-
     frames.tick(FPS)
