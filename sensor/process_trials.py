@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 data = np.loadtxt('acc_data.txt')
 data_stats = np.loadtxt('acc_trials.txt', dtype='int')
 
-fs = 50
-window_size = int(fs * 0.5)
+fs = 15
+window_size = int(fs * 0.25)
 n_signals = data.shape[1]
 
 trials = {}
@@ -49,7 +49,7 @@ for mov in mean_values:
 
 print(mean_mean_values)
 
-fig, axs = plt.subplot(1, n_signals)
+fig, axs = plt.subplots(1, n_signals)
 
 for s in range(n_signals):
     vals = [row[s] for row in mean_mean_values]
