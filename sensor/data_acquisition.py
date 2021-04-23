@@ -6,13 +6,10 @@ import socket
 import struct
 import random
 import numpy as np
-from dotenv import load_dotenv
-import os
 
-load_dotenv()
 
 # Experiment configuration
-conditions = [('Rotate left', 1), ('Rotate right', 2), ('Shake', 3), ('Walk', 4)]
+conditions = [('Rotate left', 1), ('Rotate right', 2), ('Shake', 3), ('Lift up and down', 4)]
 n_trials = 2
 
 fixation_cross_time = 5
@@ -32,8 +29,9 @@ for tr in trials:
     experiment.append( ('Rest', rest_time, -1) )
 
 # Socket configuration
-UDP_IP = str(os.environ['UDP_IP'])
-UDP_PORT = int(os.environ['UDP_PORT'])
+# (Sample IP and Port)
+UDP_IP = "192.68.1.54"
+UDP_PORT = "8880"
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))
 sock.settimeout(0.001)

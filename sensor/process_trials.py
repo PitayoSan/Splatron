@@ -8,7 +8,8 @@ data = np.loadtxt('acc_data.txt')
 data_stats = np.loadtxt('acc_trials.txt', dtype='int')
 
 fs = 50
-window_size = int(fs * 0.5)
+rate = 0.5
+window_size = int(fs * rate)
 n_signals = data.shape[1]
 
 trials = {}
@@ -119,7 +120,6 @@ for s in range(n_signals):
 
     i = 0
     for j in list(trials.keys()):
-        print(j)
         axs2[s].plot(freqs, vals[i], label=j)
         i += 1
     
