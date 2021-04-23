@@ -12,12 +12,12 @@ import os
 load_dotenv()
 
 # Experiment configuration
-conditions = [('Rotate left', 1), ('Rotate right', 2), ('Shake', 3)]
-n_trials = 3
+conditions = [('Rotate left', 1), ('Rotate right', 2), ('Shake', 3), ('Walk', 4)]
+n_trials = 2
 
 fixation_cross_time = 5
 preparation_time = 2
-training_time = 10
+training_time = 30
 rest_time = 5
 
 # Experiment stages
