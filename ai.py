@@ -28,7 +28,7 @@ import threading
 
 ##### real time processing code #####
 # Socket configuration
-UDP_IP = '192.168.1.218'
+UDP_IP = '192.168.0.1'
 UDP_PORT = 8000
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
