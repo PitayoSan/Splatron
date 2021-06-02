@@ -6,13 +6,92 @@ from pygame.locals import K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT
 import sys
 import random
 
+
+
+##### real time processing imports #####
+from subprocess import Popen
+import sys
+import time
+import socket
+# import struct
+import numpy as np
+# from scipy import stats
+# from scipy import signal
+import pickle
+# from sklearn import svm, neighbors, tree
+# from sklearn.model_selection import KFold
+# import keyboard
+import threading
+########################################
+
+
+
+##### real time processing code #####
+# Socket configuration
+UDP_IP = '192.168.1.218'
+UDP_PORT = 8000
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind((UDP_IP, UDP_PORT))
+sock.settimeout(0.001)
+
+# Processing parameters
+fs = 50                         # Sampling rate
+win_length = 0.25               # Window length in seconds
+win_samps = int(fs*win_length)  # Number of samples per window
+
+# Data acquisition loop
+data_buffer = []
+
+start_time = time.time()
+start_time2 = start_time
+update_time = 0.25
+
+# ('Tilt left', 1), ('Tilt right', 2), ('Tilt up', 3), ('Tilt down', 4)
+movement = ['Left', 'Right', 'Up', 'Down']
+
+with open('pickled_clf', 'rb') as pickled_clf:
+    clf = pickle.load(pickled_clf)
+
+print("The classifier was unpickled")
+
+def send_data(features):
+    # print(features)
+    if features:
+        x = np.array(features)
+        y = clf.predict(x)
+        direction = int(y)-1
+        if direction == 0:
+            # keyboard.press_and_release('left')
+            print('SENDING LEFT')
+            get_from_phone(direction)
+        elif direction == 1:
+            # keyboard.press_and_release('right')
+            print('SENDING RIGHT')
+            get_from_phone(direction)
+        elif direction == 2:
+            # keyboard.press_and_release('up')
+            print('SENDING UP')
+            get_from_phone(direction)
+        elif direction == 3:
+            # keyboard.press_and_release('down')
+            print('SENDING DOWN')
+            get_from_phone(direction)
+######################################
+
+
+
+
+# Store input from phone
+phone_input = {}
+
 # Entities
 NONE = 0
 PLAYER = 1
 AI = 2
 
 # Entities parameters
-PLAYER_INK = 200
+PLAYER_INK = 2000
 
 # Size
 BOARD_SIZE_H = 8
@@ -118,7 +197,10 @@ class Human(Player):
 
         direction = self.prev_direction
 
-        pressed_keys = pygame.key.get_pressed()
+        if len(phone_input) > 0:
+            pressed_keys = phone_input
+        else:
+            pressed_keys = pygame.key.get_pressed()
 
         if pressed_keys[K_UP] != pressed_keys[K_DOWN]:
             if pressed_keys[K_UP]:
@@ -262,6 +344,23 @@ class Splatron(TwoPlayersGame):
     def scoreboard(self):
         return f'HUMAN: {str(self.player1.get_score())} ({str(self.player1.ink)})  AI: {str(self.player2.get_score())} ({str(self.player2.ink)})'
 
+# Get input from phone
+def get_from_phone(direction):
+    global phone_input
+
+    phone_input[K_UP] = False
+    phone_input[K_DOWN] = False
+    phone_input[K_LEFT] = False
+    phone_input[K_RIGHT] = False
+
+    if direction == 0:
+        phone_input[K_LEFT] = True
+    if direction == 1:
+        phone_input[K_RIGHT] = True
+    if direction == 2:
+        phone_input[K_UP] = True
+    if direction == 3:
+        phone_input[K_DOWN] = True
 
 # General setup
 pygame.init()
@@ -295,6 +394,53 @@ game.board.spawn_beta().draw(screen)
 game.player1.location.draw(screen)
 game.player2.location.draw(screen)
 
+def phone_update():
+    global start_time
+    
+    try:
+        # Read data from UDP connection
+        data, addr = sock.recvfrom(1024*1024)      
+
+        # Decode binary stream. 
+        data_string = data.decode('ascii').split(",")
+
+        # Append new sensor data
+        nsensors = (len(data_string)-1)/4
+
+        for ind in range(1, len(data_string), 4):
+            type =  int(data_string[ind])
+
+            if type == 3:
+                data_buffer.append([float(data_string[ind+1]), float(data_string[ind+2]), float(data_string[ind+3])])
+
+    except socket.timeout:
+        pass
+
+    ellapsed_time = time.time() - start_time
+    if ellapsed_time > update_time and len(data_buffer) >= win_samps:
+
+        start_time = time.time()        
+
+        # Get last window
+        win_data = np.array(data_buffer[-win_samps:])        
+        nsignals = win_data.shape[1]
+        # print('Last window', win_data)
+
+        # Calculate features
+        # The feature vector contains the following elements:
+        # Avex, Stdx, Kurtosisx, Skewnesx, PSDx, Avey, Stdy, Kurtosisy, Skewnesy, PSDy, Avez, Stdz, Kurtosisz, Skewnesz, PSDz
+        features = [[]]
+        for k in range(nsignals):
+            features[0].append(np.average(win_data[:,k]))
+            # features.append(np.std(win_data[:,k]))
+            # features.append(stats.kurtosis(win_data[:,k]))
+            # features.append(stats.skew(win_data[:,k]))            
+            
+            # freqs, psd = signal.periodogram(win_data[:,k], fs, 'hamming', scaling='spectrum')            
+            # features.extend(psd.tolist())
+
+        #print('Features: ', features)
+        send_data(features)
 
 def update():
     global score_last
@@ -324,6 +470,8 @@ def update():
     pygame.draw.rect(screen, BLACK, rect)
     screen.blit(text, rect)
 
+    phone_input = {}
+
 
 while not game.is_over():
     pygame.display.update()
@@ -331,6 +479,10 @@ while not game.is_over():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+    try:
+        phone_update()
+    except KeyboardInterrupt:
+        print('se acabo')
     update()
     frames.tick(FPS)
 
