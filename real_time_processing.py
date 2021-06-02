@@ -18,7 +18,6 @@ import threading
 # Socket configuration
 UDP_IP = '192.168.1.65'
 UDP_PORT = 8000
-GAME_ADDRESS = ("0.0.0.0", 8085)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))
@@ -53,19 +52,15 @@ def send_data(features):
         if direction == 0:
             # keyboard.press_and_release('left')
             print('SENDING LEFT')
-            sock.sendto(str('0').encode('utf-8'), GAME_ADDRESS)
         elif direction == 1:
             # keyboard.press_and_release('right')
             print('SENDING RIGHT')
-            sock.sendto(str('1').encode('utf-8'), GAME_ADDRESS)
         elif direction == 2:
             # keyboard.press_and_release('up')
-            print('SENDING UP')  
-            sock.sendto(str('2').encode('utf-8'), GAME_ADDRESS)
+            print('SENDING UP')
         elif direction == 3:
             # keyboard.press_and_release('down')
             print('SENDING DOWN')
-            sock.sendto(str('3').encode('utf-8'), GAME_ADDRESS)
 
 # child = Popen([sys.executable, 'ai.py', '--username', 'root'])
 # print('xdxdxdxdd')

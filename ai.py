@@ -5,16 +5,6 @@ import pygame
 from pygame.locals import K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT
 import sys
 import random
-import socket
-
-socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.bind(("", 8085))
-socket.listen(1) # ??
-
-# print('RECEIVING: ', socket.accept())
-c, address = socket.accept()
-print('receiving from: ', address)
-sys.stdout.flush()
 
 # Entities
 NONE = 0
@@ -127,23 +117,19 @@ class Human(Player):
     def get_direction(self):  # Should return valid direction
 
         direction = self.prev_direction
-        received = c.recv(1024).decode()
-        print(received)
-        # print('RECEIVING: ', socket.accept()) # take result 
-        # direction = result
 
-        # pressed_keys = pygame.key.get_pressed()
+        pressed_keys = pygame.key.get_pressed()
 
-        # if pressed_keys[K_UP] != pressed_keys[K_DOWN]:
-        #     if pressed_keys[K_UP]:
-        #         direction = [0, -1]
-        #     elif pressed_keys[K_DOWN]:
-        #         direction = [0, 1]
-        # elif pressed_keys[K_LEFT] != pressed_keys[K_RIGHT]:
-        #     if pressed_keys[K_LEFT]:
-        #         direction = [-1, 0]
-        #     elif pressed_keys[K_RIGHT]:
-        #         direction = [1, 0]
+        if pressed_keys[K_UP] != pressed_keys[K_DOWN]:
+            if pressed_keys[K_UP]:
+                direction = [0, -1]
+            elif pressed_keys[K_DOWN]:
+                direction = [0, 1]
+        elif pressed_keys[K_LEFT] != pressed_keys[K_RIGHT]:
+            if pressed_keys[K_LEFT]:
+                direction = [-1, 0]
+            elif pressed_keys[K_RIGHT]:
+                direction = [1, 0]
 
         if direction in self.possible_moves():
             return direction
@@ -281,9 +267,9 @@ class Splatron(TwoPlayersGame):
 pygame.init()
 
 # Music Mixer
-# pygame.mixer.init()
-# pygame.mixer.music.load(MATCH_TRACK)
-# pygame.mixer.music.play(-1)
+pygame.mixer.init()
+pygame.mixer.music.load(MATCH_TRACK)
+pygame.mixer.music.play(-1)
 
 # Window elements
 pygame.display.set_caption("Splatron")
