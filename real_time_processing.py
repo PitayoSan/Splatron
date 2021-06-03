@@ -35,7 +35,9 @@ update_time = 0.05
 movement = ['Left', 'Right', 'Up', 'Down']
 
 # The classifier is unpickled
-with open('pickled_clf', 'rb') as pickled_clf:
+# Please choose a version for the classifier:
+clf_name = 'pickled_clf_[linux|windows]'
+with open(clf_name, 'rb') as pickled_clf:
     clf = pickle.load(pickled_clf)
 
 def send_data(features):
