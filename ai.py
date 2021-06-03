@@ -19,7 +19,7 @@ PLAYER = 1
 AI = 2
 
 # Entities parameters
-PLAYER_INK = 200
+PLAYER_INK = 500
 
 # Size
 BOARD_SIZE_H = 8
@@ -38,7 +38,7 @@ PROGRAM_ICON = pygame.image.load('esplatun.ico')
 BLACK = (0, 0, 0)
 
 # FPS
-FPS = 15
+FPS = 12
 
 # Music files
 MATCH_TRACK = 'ost.ogg'

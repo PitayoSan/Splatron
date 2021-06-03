@@ -27,17 +27,9 @@ sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock2.connect(GAME_CONN_ADDR)
 print('connected to server!')
 
-# try:
-#     while True:
-#         msg = input('Say something: ')
-#         sock2.send(bytes(msg, 'utf-8'))
-# except KeyboardInterrupt:
-#     sock2.close()
-#     sys.exit()
-
 # Processing parameters
-fs = 50                         # Sampling rate
-win_length = 0.25               # Window length in seconds
+fs = 10                      # Sampling rate
+win_length = 0.1              # Window length in seconds
 win_samps = int(fs*win_length)  # Number of samples per window
 
 # Data acquisition loop
@@ -45,7 +37,7 @@ data_buffer = []
 
 start_time = time.time()
 start_time2 = start_time
-update_time = 0.25
+update_time = 0.05
 
 # ('Tilt left', 1), ('Tilt right', 2), ('Tilt up', 3), ('Tilt down', 4)
 movement = ['Left', 'Right', 'Up', 'Down']
