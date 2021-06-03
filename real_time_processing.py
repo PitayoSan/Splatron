@@ -12,12 +12,11 @@ import numpy as np
 import pickle
 # from sklearn import svm, neighbors, tree
 # from sklearn.model_selection import KFold
-import keyboard
 import threading
 
 # Socket configuration
 PHONE_CONN_ADDR = ('192.168.1.65', 8000)
-GAME_CONN_ADDR = ('localhost', 8009)
+GAME_CONN_ADDR = ('localhost', 8001)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(PHONE_CONN_ADDR)
@@ -123,7 +122,7 @@ try:
 
             #print('Features: ', features)
             send_data(features)
-except KeyboardInterrupt:
+except (KeyboardInterrupt, ConnectionResetError):
     sock.close()
     print('Game!')
 

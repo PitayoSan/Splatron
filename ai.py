@@ -9,7 +9,7 @@ import socket
 import threading
 
 # Sockets
-GAME_ADDRESS = ('localhost', 8009)
+GAME_ADDRESS = ('localhost', 8001)
 
 current_direction = 1
 
@@ -47,6 +47,8 @@ MATCH_TRACK = 'ost.ogg'
 player_last = None
 ai_last = None
 score_last = 0
+
+over = False
 
 class Tile:
     def __init__(self, x, y, back, front):
@@ -250,7 +252,9 @@ class Splatron(TwoPlayersGame):
         return self.player1 if self.nplayer == 1 else self.player2
 
     def is_over(self):
-        return self.player1.ink == 0 and self.player2.ink == 0
+        global over
+        over = self.player1.ink == 0 and self.player2.ink == 0
+        return over
 
     def possible_moves(self):
         return self.current_player().possible_moves()
@@ -273,8 +277,9 @@ sock.bind(GAME_ADDRESS)
 sock.listen()
 
 def receive_movement():
+    global over
     print('connection accepted')
-    while True:
+    while not over:
         data = conn.recv(1024)
         if data:
             global current_direction
@@ -350,6 +355,7 @@ while not game.is_over():
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == QUIT:
+            sock.close()
             pygame.quit()
             sys.exit()
     update()
