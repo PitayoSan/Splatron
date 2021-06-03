@@ -1,9 +1,14 @@
 from easyAI import TwoPlayersGame, Human_Player, AI_Player, Negamax
-# from test import Tile, PLAYER, AI, NONE
 import pygame
 from pygame.locals import K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT
 import sys
-import random
+import socket
+import threading
+
+# Sockets
+GAME_ADDRESS = ('localhost', 8001)
+
+current_direction = 1
 
 # Entities
 NONE = 0
@@ -11,7 +16,7 @@ PLAYER = 1
 AI = 2
 
 # Entities parameters
-PLAYER_INK = 200
+PLAYER_INK = 500
 
 # Size
 BOARD_SIZE_H = 8
@@ -30,7 +35,7 @@ PROGRAM_ICON = pygame.image.load('esplatun.ico')
 BLACK = (0, 0, 0)
 
 # FPS
-FPS = 15
+FPS = 12
 
 # Music files
 MATCH_TRACK = 'ost.ogg'
@@ -39,6 +44,8 @@ MATCH_TRACK = 'ost.ogg'
 player_last = None
 ai_last = None
 score_last = 0
+
+over = False
 
 class Tile:
     def __init__(self, x, y, back, front):
@@ -68,7 +75,6 @@ class Tile:
         screen.blit(image_back, (self.x * TILE_SIZE, self.y * TILE_SIZE))
         if image_front:
             screen.blit(image_front, (self.x * TILE_SIZE, self.y * TILE_SIZE))
-
 
 class Player:
     ALL_MOVES = [[0, -1], [0, 1], [-1, 0], [1, 0]]
@@ -116,18 +122,15 @@ class Human(Player):
     def get_direction(self):  # Should return valid direction
 
         direction = self.prev_direction
-        pressed_keys = pygame.key.get_pressed()
 
-        if pressed_keys[K_UP] != pressed_keys[K_DOWN]:
-            if pressed_keys[K_UP]:
-                direction = [0, -1]
-            elif pressed_keys[K_DOWN]:
-                direction = [0, 1]
-        elif pressed_keys[K_LEFT] != pressed_keys[K_RIGHT]:
-            if pressed_keys[K_LEFT]:
-                direction = [-1, 0]
-            elif pressed_keys[K_RIGHT]:
-                direction = [1, 0]
+        if current_direction == 2:
+            direction = [0, -1]
+        elif current_direction == 3:
+            direction = [0, 1]
+        elif current_direction == 0:
+            direction = [-1, 0]
+        elif current_direction == 1:
+            direction = [1, 0]
 
         if direction in self.possible_moves():
             return direction
@@ -172,7 +175,6 @@ class Ai(Player):
                 if tile.back == 2: score += 1
         
         return score
-
 
 class Board:
 
@@ -228,8 +230,6 @@ class Board:
             print()
         print('#######################')
     
-
-
 class Splatron(TwoPlayersGame):
 
     def __init__(self, players, board_size_h, board_size_v):
@@ -244,7 +244,9 @@ class Splatron(TwoPlayersGame):
         return self.player1 if self.nplayer == 1 else self.player2
 
     def is_over(self):
-        return self.player1.ink == 0 and self.player2.ink == 0
+        global over
+        over = self.player1.ink == 0 and self.player2.ink == 0
+        return over
 
     def possible_moves(self):
         return self.current_player().possible_moves()
@@ -259,6 +261,27 @@ class Splatron(TwoPlayersGame):
     
     def scoreboard(self):
         return f'HUMAN: {str(self.player1.get_score())} ({str(self.player1.ink)})  AI: {str(self.player2.get_score())} ({str(self.player2.ink)})'
+
+
+# Controller init
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.bind(GAME_ADDRESS)
+sock.listen()
+
+
+def receive_movement():
+    global over
+    print('connection accepted')
+    while not over:
+        data = conn.recv(1024)
+        if data:
+            global current_direction
+            current_direction = int(data)
+
+
+conn, _ = sock.accept()
+movement = threading.Thread(target=receive_movement)
+movement.start()
 
 
 # General setup
@@ -327,6 +350,7 @@ while not game.is_over():
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == QUIT:
+            sock.close()
             pygame.quit()
             sys.exit()
     update()
@@ -336,3 +360,5 @@ if game.player1.get_score() > game.player2.get_score():
     print("YOU WON!!!")
 else:
     print("You suck! Better luck next time.")
+
+movement.join()
