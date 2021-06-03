@@ -16,12 +16,24 @@ import keyboard
 import threading
 
 # Socket configuration
-UDP_IP = '192.168.1.65'
-UDP_PORT = 8000
+PHONE_CONN_ADDR = ('192.168.1.65', 8000)
+GAME_CONN_ADDR = ('localhost', 8009)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind((UDP_IP, UDP_PORT))
+sock.bind(PHONE_CONN_ADDR)
 sock.settimeout(0.001)
+
+sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock2.connect(GAME_CONN_ADDR)
+print('connected to server!')
+
+# try:
+#     while True:
+#         msg = input('Say something: ')
+#         sock2.send(bytes(msg, 'utf-8'))
+# except KeyboardInterrupt:
+#     sock2.close()
+#     sys.exit()
 
 # Processing parameters
 fs = 50                         # Sampling rate
@@ -41,7 +53,7 @@ movement = ['Left', 'Right', 'Up', 'Down']
 with open('pickled_clf', 'rb') as pickled_clf:
     clf = pickle.load(pickled_clf)
 
-print("The classifier was unpickled")
+# print("The classifier was unpickled")
 
 def send_data(features):
     # print(features)
@@ -52,22 +64,26 @@ def send_data(features):
         if direction == 0:
             # keyboard.press_and_release('left')
             print('SENDING LEFT')
+            sock2.send(b'0')
         elif direction == 1:
             # keyboard.press_and_release('right')
             print('SENDING RIGHT')
+            sock2.send(b'1')
         elif direction == 2:
             # keyboard.press_and_release('up')
             print('SENDING UP')
+            sock2.send(b'2')
         elif direction == 3:
             # keyboard.press_and_release('down')
             print('SENDING DOWN')
-
+            sock2.send(b'3')
+        else:
+            print('No features!!')
 # child = Popen([sys.executable, 'ai.py', '--username', 'root'])
 # print('xdxdxdxdd')
 
 try:
     while True:
-            
         try:
             # Read data from UDP connection
             data, addr = sock.recvfrom(1024*1024)      
@@ -84,7 +100,10 @@ try:
                 if type == 3:
                     data_buffer.append([float(data_string[ind+1]), float(data_string[ind+2]), float(data_string[ind+3])])
 
-        except socket.timeout:
+        except socket.timeout as etime:
+            # sock.close()
+            # print(str(etime))
+            # sys.exit()
             pass
 
         ellapsed_time = time.time() - start_time;    
@@ -113,7 +132,8 @@ try:
             #print('Features: ', features)
             send_data(features)
 except KeyboardInterrupt:
-    print('se acabo')
+    sock.close()
+    print('Game!')
 
 # child.wait()
 # child.exit()
