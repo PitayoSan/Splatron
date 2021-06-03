@@ -1,18 +1,11 @@
 #------------------------------------------------------------------------------------------------------------------
 #   Real time processing of mobile sensor data.
 #------------------------------------------------------------------------------------------------------------------
-from subprocess import Popen
-import sys
 import time
 import socket
-# import struct
 import numpy as np
-# from scipy import stats
-# from scipy import signal
 import pickle
-# from sklearn import svm, neighbors, tree
-# from sklearn.model_selection import KFold
-import threading
+
 
 # Socket configuration
 PHONE_CONN_ADDR = ('192.168.1.65', 8000)
@@ -27,8 +20,8 @@ sock2.connect(GAME_CONN_ADDR)
 print('connected to server!')
 
 # Processing parameters
-fs = 10                      # Sampling rate
-win_length = 0.1              # Window length in seconds
+fs = 10                         # Sampling rate
+win_length = 0.1                # Window length in seconds
 win_samps = int(fs*win_length)  # Number of samples per window
 
 # Data acquisition loop
@@ -41,10 +34,9 @@ update_time = 0.05
 # ('Tilt left', 1), ('Tilt right', 2), ('Tilt up', 3), ('Tilt down', 4)
 movement = ['Left', 'Right', 'Up', 'Down']
 
+# The classifier is unpickled
 with open('pickled_clf', 'rb') as pickled_clf:
     clf = pickle.load(pickled_clf)
-
-# print("The classifier was unpickled")
 
 def send_data(features):
     # print(features)
@@ -70,8 +62,6 @@ def send_data(features):
             sock2.send(b'3')
         else:
             print('No features!!')
-# child = Popen([sys.executable, 'ai.py', '--username', 'root'])
-# print('xdxdxdxdd')
 
 try:
     while True:
@@ -105,31 +95,14 @@ try:
             # Get last window
             win_data = np.array(data_buffer[-win_samps:])        
             nsignals = win_data.shape[1]
-            # print('Last window', win_data)
-
-            # Calculate features
-            # The feature vector contains the following elements:
-            # Avex, Stdx, Kurtosisx, Skewnesx, PSDx, Avey, Stdy, Kurtosisy, Skewnesy, PSDy, Avez, Stdz, Kurtosisz, Skewnesz, PSDz
             features = [[]]
             for k in range(nsignals):
                 features[0].append(np.average(win_data[:,k]))
-                # features.append(np.std(win_data[:,k]))
-                # features.append(stats.kurtosis(win_data[:,k]))
-                # features.append(stats.skew(win_data[:,k]))            
-                
-                # freqs, psd = signal.periodogram(win_data[:,k], fs, 'hamming', scaling='spectrum')            
-                # features.extend(psd.tolist())
 
-            #print('Features: ', features)
             send_data(features)
 except (KeyboardInterrupt, ConnectionResetError):
     sock.close()
     print('Game!')
-
-# child.wait()
-# child.exit()
-
-
 #------------------------------------------------------------------------------------------------------------------
 #   End of file
 #------------------------------------------------------------------------------------------------------------------

@@ -1,10 +1,7 @@
-from ctypes import addressof
 from easyAI import TwoPlayersGame, Human_Player, AI_Player, Negamax
-# from test import Tile, PLAYER, AI, NONE
 import pygame
 from pygame.locals import K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT
 import sys
-import random
 import socket
 import threading
 
@@ -125,10 +122,6 @@ class Human(Player):
     def get_direction(self):  # Should return valid direction
 
         direction = self.prev_direction
-        # data = conn.recv(1024)
-        # print(data)
-
-        # pressed_keys = pygame.key.get_pressed()
 
         if current_direction == 2:
             direction = [0, -1]
@@ -138,7 +131,6 @@ class Human(Player):
             direction = [-1, 0]
         elif current_direction == 1:
             direction = [1, 0]
-
 
         if direction in self.possible_moves():
             return direction
@@ -276,6 +268,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind(GAME_ADDRESS)
 sock.listen()
 
+
 def receive_movement():
     global over
     print('connection accepted')
@@ -284,6 +277,7 @@ def receive_movement():
         if data:
             global current_direction
             current_direction = int(data)
+
 
 conn, _ = sock.accept()
 movement = threading.Thread(target=receive_movement)
@@ -350,6 +344,7 @@ def update():
     )
     pygame.draw.rect(screen, BLACK, rect)
     screen.blit(text, rect)
+
 
 while not game.is_over():
     pygame.display.update()
