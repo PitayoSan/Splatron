@@ -1,18 +1,12 @@
 #------------------------------------------------------------------------------------------------------------------
 #   Real time processing of mobile sensor data.
 #------------------------------------------------------------------------------------------------------------------
-from subprocess import Popen
+from subprocess import Popen, PIPE
 import sys
 import time
 import socket
-# import struct
 import numpy as np
-# from scipy import stats
-# from scipy import signal
 import pickle
-# from sklearn import svm, neighbors, tree
-# from sklearn.model_selection import KFold
-import keyboard
 import threading
 
 # Socket configuration
@@ -71,8 +65,9 @@ def send_data(features):
             sock2.send(b'3')
         else:
             print('No features!!')
-# child = Popen([sys.executable, 'ai.py', '--username', 'root'])
-# print('xdxdxdxdd')
+
+# Invoke game UI
+child = Popen('python3 ai.py', stdout=PIPE, shell=True)
 
 try:
     while True:
@@ -127,8 +122,8 @@ except KeyboardInterrupt:
     sock.close()
     print('Game!')
 
-# child.wait()
-# child.exit()
+child.wait()
+child.exit()
 
 
 #------------------------------------------------------------------------------------------------------------------

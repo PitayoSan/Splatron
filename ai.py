@@ -272,6 +272,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind(GAME_ADDRESS)
 sock.listen()
 
+
 def receive_movement():
     print('connection accepted')
     while True:
@@ -279,6 +280,7 @@ def receive_movement():
         if data:
             global current_direction
             current_direction = int(data)
+
 
 conn, _ = sock.accept()
 movement = threading.Thread(target=receive_movement)
